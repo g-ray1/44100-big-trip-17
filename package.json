@@ -24,7 +24,7 @@
     "webpack-cli": "^4.9.2",
     "webpack-dev-server": "^4.8.1"
   },
-  "browserlist": [
+  "browserslist": [
     "last 2 versions",
     "not dead",
     "not ie <= 11",
