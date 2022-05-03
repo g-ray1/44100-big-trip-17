@@ -11,7 +11,6 @@ export default class BoardPresenter {
 
   init(waypoints) {
     this.waypoints = waypoints.getWaypoints();
-    console.log(this.waypoints);
 
     render(new FiltersFormView, this.filtersContainer);
     render(new SortingFormView, this.contentList);
