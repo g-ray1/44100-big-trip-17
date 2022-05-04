@@ -1,6 +1,10 @@
 import { createElement } from '../render.js';
 import dayjs from 'dayjs';
 
+const SECONDS_IN_DAY = 86400;
+const SECONDS_IN_HOUR = 3600;
+const SECONDS_IN_MINUTE = 60;
+
 const createWaypointTemplate = (waypoint) => {
   const {destination, isFavorite, type, basePrice, offers, dateFrom, dateTo} = waypoint;
   const favorite = isFavorite ? 'event__favorite-btn--active' : '';
@@ -14,9 +18,9 @@ const createWaypointTemplate = (waypoint) => {
 
   //форматируем длительность ивента
   const timeGap = dayjs(dateTo).diff(dayjs(dateFrom), 'seconds');
-  const timeGapInDays = Math.floor(timeGap / 86400);
-  const timeGapInHours = Math.floor((timeGap - timeGapInDays * 86400) / 3600);
-  const timeGapInMinutes = Math.floor((timeGap - timeGapInDays * 86400 - timeGapInHours * 3600) / 60);
+  const timeGapInDays = Math.floor(timeGap / SECONDS_IN_DAY);
+  const timeGapInHours = Math.floor((timeGap - timeGapInDays * SECONDS_IN_DAY) / SECONDS_IN_HOUR);
+  const timeGapInMinutes = Math.floor((timeGap - timeGapInDays * SECONDS_IN_DAY - timeGapInHours * SECONDS_IN_HOUR) / SECONDS_IN_MINUTE);
   let eventDuration = '';
 
   if (timeGapInDays > 0) {
