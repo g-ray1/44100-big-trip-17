@@ -9,12 +9,14 @@ export default class BoardPresenter {
   filtersContainer = document.querySelector('.trip-controls__filters');
   contentList = document.querySelector('.trip-events');
 
-  init() {
+  init(waypoints) {
+    this.waypoints = waypoints.getWaypoints();
+
     render(new FiltersFormView, this.filtersContainer);
     render(new SortingFormView, this.contentList);
-    render(new EditWaypointFormView, this.contentList);
-    for (let i = 0; i < 3; i++) {
-      render(new WaypointView, this.contentList);
+    render(new EditWaypointFormView(this.waypoints[0]), this.contentList);
+    for (let i = 1; i < this.waypoints.length; i++) {
+      render(new WaypointView(this.waypoints[i]), this.contentList);
     }
     render(new AddNewWaypointFormView, this.contentList);
   }
