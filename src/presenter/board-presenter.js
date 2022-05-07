@@ -5,6 +5,7 @@ import AddNewWaypointFormView from '../view/add-new-waypoint-view.js';
 import EditWaypointFormView from '../view/edit-waypoint-view.js';
 import WaypointsListView from '../view/waypoints-list-view.js';
 import WaypointView from '../view/waypoint-view.js';
+import EmptyListMessage from '../view/empty-list-view.js';
 
 export default class BoardPresenter {
   #filtersContainer = document.querySelector('.trip-controls__filters');
@@ -17,7 +18,11 @@ export default class BoardPresenter {
     render(new FiltersFormView, this.#filtersContainer);
     render(new SortingFormView, this.#mainContainer);
     render(new WaypointsListView, this.#mainContainer);
-    for (let i = 0; i < this.#waypoints.length; i++) {
+    for (let i = 0; i <= this.#waypoints.length; i++) {
+      if (this.#waypoints.length === 0) {
+        render(new EmptyListMessage, this.#mainContainer);
+        break;
+      }
       this.#renderWaypoint(this.#waypoints[i]);
     }
     render(new AddNewWaypointFormView, this.#mainContainer);
@@ -55,6 +60,7 @@ export default class BoardPresenter {
       replaceEditFormToWaypoint();
       document.removeEventListener('keydown', onEscKeyDown);
     });
+
     render(waypointComponent, waypointsList);
   };
 }
