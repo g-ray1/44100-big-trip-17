@@ -1,4 +1,4 @@
-import { render } from '../render.js';
+import { render } from '../framework/render.js';
 import FiltersFormView from '../view/filters-view.js';
 import SortingFormView from '../view/sorting-view.js';
 import AddNewWaypointFormView from '../view/add-new-waypoint-view.js';
@@ -14,11 +14,10 @@ export default class BoardPresenter {
 
   init(waypoints) {
     this.#waypoints = waypoints.waypoints;
-
     render(new FiltersFormView, this.#filtersContainer);
     render(new SortingFormView, this.#mainContainer);
     render(new WaypointsListView, this.#mainContainer);
-    for (let i = 0; i <= this.#waypoints.length; i++) {
+    for (let i = 0; i <= this.#waypoints.length - 1; i++) {
       if (this.#waypoints.length === 0) {
         render(new EmptyListMessage, this.#mainContainer);
         break;
@@ -31,7 +30,7 @@ export default class BoardPresenter {
   #renderWaypoint = (waypoint) => {
     const waypointsList = document.querySelector('.trip-events__list');
     const waypointComponent = new WaypointView(waypoint);
-    const waypointEditComponent =  new EditWaypointFormView(waypoint);
+    const waypointEditComponent =  new  EditWaypointFormView(waypoint);
 
     const replaceWaypointToEditForm = () => {
       waypointsList.replaceChild(waypointEditComponent.element, waypointComponent.element);
@@ -47,16 +46,15 @@ export default class BoardPresenter {
       }
     };
 
-    waypointComponent.element.querySelector('.event__rollup-btn').addEventListener('click', () => {
+    waypointComponent.setClickHandler(() => {
       replaceWaypointToEditForm();
       document.addEventListener('keydown', onEscKeyDown);
     });
-    waypointEditComponent.element.querySelector('.event__rollup-btn').addEventListener('click', () => {
+    waypointEditComponent.setClickHandler(() => {
       replaceEditFormToWaypoint();
       document.removeEventListener('keydown', onEscKeyDown);
     });
-    waypointEditComponent.element.querySelector('form').addEventListener('submit', (evt) => {
-      evt.preventDefault();
+    waypointEditComponent.setSubmitHandler(() => {
       replaceEditFormToWaypoint();
       document.removeEventListener('keydown', onEscKeyDown);
     });

@@ -1,4 +1,4 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import dayjs from 'dayjs';
 
 const createEditWaypointFormTemplate = (waypoint) => {
@@ -136,11 +136,11 @@ const createEditWaypointFormTemplate = (waypoint) => {
   );
 };
 
-export default class EditWaypointFormView {
+export default class EditWaypointFormView extends AbstractView {
   #waypoint = null;
-  #element = null;
 
   constructor(waypoint) {
+    super();
     this.#waypoint = waypoint;
   }
 
@@ -148,14 +148,23 @@ export default class EditWaypointFormView {
     return createEditWaypointFormTemplate(this.#waypoint);
   }
 
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-    return this.#element;
-  }
+  setClickHandler = (callback) => {
+    this._callback.click = callback;
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#clickHandler);
+  };
 
-  removeElement() {
-    this.#element = null;
-  }
+  setSubmitHandler = (callback) => {
+    this._callback.submit = callback;
+    this.element.querySelector('form').addEventListener('submit', this.#submitHandler);
+  };
+
+  #clickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.click();
+  };
+
+  #submitHandler =(evt) => {
+    evt.preventDefault();
+    this._callback.click();
+  };
 }
