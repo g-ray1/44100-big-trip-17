@@ -1,4 +1,4 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import dayjs from 'dayjs';
 
 const SECONDS_IN_DAY = 86400;
@@ -98,26 +98,15 @@ const createWaypointTemplate = (waypoint) => {
   );
 };
 
-export default class WaypointView {
+export default class WaypointView extends AbstractView {
   #waypoint = null;
-  #element = null;
 
   constructor(waypoint) {
+    super();
     this.#waypoint = waypoint;
   }
 
   get template() {
     return createWaypointTemplate(this.#waypoint);
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-    return this.#element;
-  }
-
-  removeElement() {
-    this.#element = null;
   }
 }

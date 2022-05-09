@@ -1,4 +1,4 @@
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 const createAddNewWaypointFormTemplate = () => `
             <li class="trip-events__item">
@@ -164,21 +164,8 @@ const createAddNewWaypointFormTemplate = () => `
               </form>
             </li>`;
 
-export default class AddNewWaypointFormView {
-  #element = null;
-
+export default class AddNewWaypointFormView extends AbstractView {
   get template() {
     return createAddNewWaypointFormTemplate();
-  }
-
-  get element() {
-    if (!this.#element) {
-      this.#element = createElement(this.template);
-    }
-    return this.#element;
-  }
-
-  removeElement() {
-    this.#element = null;
   }
 }
