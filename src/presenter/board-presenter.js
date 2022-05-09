@@ -46,16 +46,15 @@ export default class BoardPresenter {
       }
     };
 
-    waypointComponent.element.querySelector('.event__rollup-btn').addEventListener('click', () => {
+    waypointComponent.setClickHandler(() => {
       replaceWaypointToEditForm();
       document.addEventListener('keydown', onEscKeyDown);
     });
-    waypointEditComponent.element.querySelector('.event__rollup-btn').addEventListener('click', () => {
+    waypointEditComponent.setClickHandler(() => {
       replaceEditFormToWaypoint();
       document.removeEventListener('keydown', onEscKeyDown);
     });
-    waypointEditComponent.element.querySelector('form').addEventListener('submit', (evt) => {
-      evt.preventDefault();
+    waypointEditComponent.setSubmitHandler(() => {
       replaceEditFormToWaypoint();
       document.removeEventListener('keydown', onEscKeyDown);
     });

@@ -147,4 +147,24 @@ export default class EditWaypointFormView extends AbstractView {
   get template() {
     return createEditWaypointFormTemplate(this.#waypoint);
   }
+
+  setClickHandler = (callback) => {
+    this._callback.click = callback;
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#clickHandler);
+  };
+
+  setSubmitHandler = (callback) => {
+    this._callback.submit = callback;
+    this.element.querySelector('form').addEventListener('submit', this.#submitHandler);
+  };
+
+  #clickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.click();
+  };
+
+  #submitHandler =(evt) => {
+    evt.preventDefault();
+    this._callback.click();
+  };
 }
