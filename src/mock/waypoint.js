@@ -1,5 +1,6 @@
 import { getRandomElement, getRandomInt } from '../utils.js';
 import dayjs from 'dayjs';
+import { nanoid } from 'nanoid';
 
 const waypointTypes = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
 const citysNames = ['Moskow', 'Tokio', 'Paris', 'Rome', 'New York'];
@@ -72,7 +73,7 @@ export const getRandomWaypoint = () => {
         }
       ]
     },
-    id: getRandomInt(100),
+    id: nanoid(),
     isFavorite: Boolean(Math.round(Math.random() * 1)),
     type: getRandomElement(waypointTypes),
     offers: null,

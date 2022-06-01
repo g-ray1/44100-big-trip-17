@@ -2,65 +2,67 @@ import { render } from '../framework/render.js';
 import FiltersFormView from '../view/filters-view.js';
 import SortingFormView from '../view/sorting-view.js';
 import AddNewWaypointFormView from '../view/add-new-waypoint-view.js';
-import EditWaypointFormView from '../view/edit-waypoint-view.js';
 import WaypointsListView from '../view/waypoints-list-view.js';
-import WaypointView from '../view/waypoint-view.js';
+import WaypointPresenter from './waypoint-presenter.js';
 import EmptyListMessage from '../view/empty-list-view.js';
+import { updateItem } from '../utils.js';
 
 export default class BoardPresenter {
   #filtersContainer = document.querySelector('.trip-controls__filters');
   #mainContainer = document.querySelector('.trip-events');
+  #filtersComponent = new FiltersFormView();
+  #sortComponent = new SortingFormView();
+  #addNewWayointComponent = new AddNewWaypointFormView();
+  #waypointsList = new WaypointsListView();
+  #emptyList = new EmptyListMessage();
   #waypoints = null;
+  #waypointsPresenters = new Map();
 
   init(waypoints) {
     this.#waypoints = waypoints.waypoints;
-    render(new FiltersFormView, this.#filtersContainer);
-    render(new SortingFormView, this.#mainContainer);
-    render(new WaypointsListView, this.#mainContainer);
-    for (let i = 0; i <= this.#waypoints.length - 1; i++) {
-      if (this.#waypoints.length === 0) {
-        render(new EmptyListMessage, this.#mainContainer);
-        break;
+    this.#renderFiltersComponent();
+    this.#renderSortingComponent();
+    this.#renderWaypointsList();
+
+    if (this.#waypoints.length === 0) {
+      this.#renderEmptyListMessage();
+    } else {
+      for (let i = 0; i < this.#waypoints.length; i++) {
+        const waypointPresenter = new WaypointPresenter(this.#handleWaypointChange, this.#handleModeChange);
+        waypointPresenter.init(this.#waypoints[i]);
+        this.#waypointsPresenters.set(this.#waypoints[i].id, waypointPresenter);
       }
-      this.#renderWaypoint(this.#waypoints[i]);
     }
-    render(new AddNewWaypointFormView, this.#mainContainer);
+
+    this.#renderAddNewWaypointComponent();
   }
 
-  #renderWaypoint = (waypoint) => {
-    const waypointsList = document.querySelector('.trip-events__list');
-    const waypointComponent = new WaypointView(waypoint);
-    const waypointEditComponent =  new  EditWaypointFormView(waypoint);
+  #renderFiltersComponent = () => {
+    render(this.#filtersComponent, this.#filtersContainer);
+  };
 
-    const replaceWaypointToEditForm = () => {
-      waypointsList.replaceChild(waypointEditComponent.element, waypointComponent.element);
-    };
-    const replaceEditFormToWaypoint = () => {
-      waypointsList.replaceChild(waypointComponent.element, waypointEditComponent.element);
-    };
-    const onEscKeyDown = (evt) => {
-      if (evt.key === 'Escape' || evt.key === 'Esc') {
-        evt.preventDefault();
-        replaceEditFormToWaypoint();
-        document.removeEventListener('keydown', onEscKeyDown);
-      }
-    };
+  #renderSortingComponent = () => {
+    render(this.#sortComponent, this.#mainContainer);
+  };
 
-    waypointComponent.setClickHandler(() => {
-      replaceWaypointToEditForm();
-      document.addEventListener('keydown', onEscKeyDown);
-    });
-    waypointEditComponent.setClickHandler(() => {
-      replaceEditFormToWaypoint();
-      document.removeEventListener('keydown', onEscKeyDown);
-    });
-    waypointEditComponent.setSubmitHandler(() => {
-      replaceEditFormToWaypoint();
-      document.removeEventListener('keydown', onEscKeyDown);
-    });
+  #renderWaypointsList = () => {
+    render(this.#waypointsList, this.#mainContainer);
+  };
 
-    render(waypointComponent, waypointsList);
+  #renderEmptyListMessage = () => {
+    render(this.#emptyList, this.#mainContainer);
+  };
+
+  #renderAddNewWaypointComponent = () => {
+    render(this.#addNewWayointComponent, this.#mainContainer);
+  };
+
+  #handleWaypointChange = (updatedWaypoint) => {
+    this.#waypoints = updateItem(this.#waypoints, updatedWaypoint);
+    this.#waypointsPresenters.get(updatedWaypoint.id).init(updatedWaypoint);
+  };
+
+  #handleModeChange = () => {
+    this.#waypointsPresenters.forEach((presenter) => presenter.resetView());
   };
 }
-
-
