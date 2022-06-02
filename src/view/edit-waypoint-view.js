@@ -158,6 +158,11 @@ export default class EditWaypointFormView extends AbstractView {
     this.element.querySelector('form').addEventListener('submit', this.#submitHandler);
   };
 
+  setFavoriteClickHandler = (callback) => {
+    this._callback.favoriteButtonClick = callback;
+    this.element.querySelector('.event__favorite-btn').addEventListener('click', this.#favoriteClickHandler);
+  };
+
   #clickHandler = (evt) => {
     evt.preventDefault();
     this._callback.click();
@@ -165,6 +170,11 @@ export default class EditWaypointFormView extends AbstractView {
 
   #submitHandler =(evt) => {
     evt.preventDefault();
-    this._callback.click();
+    this._callback.submit();
+  };
+
+  #favoriteClickHandler = (evt) => {
+    evt.preventDefault();
+    this._callback.favoriteButtonClick();
   };
 }
