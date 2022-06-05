@@ -33,7 +33,6 @@ export default class BoardPresenter {
     this.#renderWaypoints();
 
     this.#renderAddNewWaypointComponent();
-    console.log(this.#waypoints);
   }
 
   #renderFiltersComponent = () => {
