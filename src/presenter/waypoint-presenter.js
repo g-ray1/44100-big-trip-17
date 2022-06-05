@@ -51,7 +51,7 @@ export default class WaypointPresenter {
     remove(prevWaypointEditComponent);
   };
 
-  #destroyComponent = () => {
+  destroyComponent = () => {
     remove(this.#waypointComponent);
     remove(this.#waypointEditComponent);
   };
