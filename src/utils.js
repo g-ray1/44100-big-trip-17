@@ -16,25 +16,11 @@ export const updateItem = (items, update) => {
   ];
 };
 
-export const getWeightForPrice = (firstItem, secondItem) => {
-  if (firstItem.basePrice > secondItem.basePrice) {
-    return -1;
-  } else if (firstItem.basePrice < secondItem.basePrice) {
-    return 1;
-  } else {
-    return 0;
-  }
-};
+export const getWeightForPrice = (firstItem, secondItem) => secondItem.basePrice - firstItem.basePrice;
 
 export const getWeightForTime = (firstItem, secondItem) => {
   const firstGap = dayjs(firstItem.dateTo).diff(dayjs(firstItem.dateFrom), 'seconds');
   const secondGap = dayjs(secondItem.dateTo).diff(dayjs(secondItem.dateFrom), 'seconds');
 
-  if (firstGap > secondGap) {
-    return -1;
-  } else if (firstGap < secondGap) {
-    return 1;
-  } else {
-    return 0;
-  }
+  return secondGap - firstGap;
 };

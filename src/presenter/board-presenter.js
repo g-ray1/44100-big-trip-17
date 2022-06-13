@@ -24,6 +24,7 @@ export default class BoardPresenter {
   #currentSortType = SortingMode.DAY;
 
   init(waypoints) {
+    console.log(waypoints);
     this.#waypoints = waypoints.waypoints;
     this.#sourcedWaypoints = [...this.#waypoints];
     this.#renderFiltersComponent();
