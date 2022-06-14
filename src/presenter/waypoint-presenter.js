@@ -97,6 +97,7 @@ export default class WaypointPresenter {
 
   resetView = () => {
     if (this.#mode !== Mode.DEFAULT) {
+      this.#waypointEditComponent.reset(this.#waypoint);
       this.#replaceEditFormToWaypoint();
     }
   };

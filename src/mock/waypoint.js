@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import { nanoid } from 'nanoid';
 
 const waypointTypes = ['taxi', 'bus', 'train', 'ship', 'drive', 'flight', 'check-in', 'sightseeing', 'restaurant'];
-const citysNames = ['Moskow', 'Tokio', 'Paris', 'Rome', 'New York'];
+export const citysNames = ['Moskow', 'Tokio', 'Paris', 'Rome', 'New York'];
 const lorem = [
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. ',
   'Cras aliquet varius magna, non porta ligula feugiat eget. ',
@@ -16,6 +16,14 @@ const lorem = [
   'Aliquam erat volutpat. ',
   'Nunc fermentum tortor ac porta dapibus. ',
   'In rutrum ac purus sit amet tempus.'
+];
+
+export const getRandomDescription = (sentenceCount) => [...Array(sentenceCount)].map(() => getRandomElement(lorem)).join('');
+export const getRandomPic = () => [
+  {
+    src: `http://picsum.photos/248/152?r=${Math.random()}`,
+    description: getRandomElement(lorem),
+  }
 ];
 
 //функция генерации офферов
@@ -64,14 +72,9 @@ export const getRandomWaypoint = () => {
     dateFrom,
     dateTo,
     destination: {
-      description: [...Array(5)].map(() => getRandomElement(lorem)).join(''),
+      description: getRandomDescription(5),
       name: getRandomElement(citysNames),
-      pictures: [
-        {
-          src: `http://picsum.photos/248/152?r=${Math.random()}`,
-          description: getRandomElement(lorem),
-        }
-      ]
+      pictures: getRandomPic(),
     },
     id: nanoid(),
     isFavorite: Boolean(Math.round(Math.random() * 1)),
