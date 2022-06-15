@@ -1,6 +1,8 @@
 import AbstrAbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import { offersPlusTypes, citysNames, getRandomDescription, getRandomPic } from '../mock/waypoint.js';
 import dayjs from 'dayjs';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 const getWaypointOffers = (offers) => {
   let waypointOffers = '';
@@ -154,6 +156,8 @@ const createEditWaypointFormTemplate = (waypoint) => {
 };
 
 export default class EditWaypointFormView extends AbstrAbstractStatefulView {
+  #datepicker = null;
+
   constructor(waypoint) {
     super();
     this._state = EditWaypointFormView.parseWaypointToState(waypoint);
@@ -190,6 +194,15 @@ export default class EditWaypointFormView extends AbstrAbstractStatefulView {
     this.updateElement(
       EditWaypointFormView.parseWaypointToState(waypoint),
     );
+  };
+
+  removeElement = () => {
+    super.removeElement();
+
+    if (this.#datepicker) {
+      this.#datepicker.destroy();
+      this.#datepicker = null;
+    }
   };
 
   _restoreHandlers = () => {
@@ -238,8 +251,50 @@ export default class EditWaypointFormView extends AbstrAbstractStatefulView {
     });
   };
 
+  #dateFromChangeHandler = ([userDate]) => {
+    this._setState({
+      dateFrom: userDate,
+    });
+  };
+
+  #dateToChangeHandler = ([userDate]) => {
+    this._setState({
+      dateTo: userDate,
+    });
+  };
+
+  #setDateFromPicker = () => {
+    this.#datepicker = flatpickr(
+      this.element.querySelector('#event-start-time-1'),
+      {
+        allowInput: true,
+        enableTime: true,
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateFrom,
+        maxDate: this._state.dateTo,
+        onChange: this.#dateFromChangeHandler,
+      }
+    );
+  };
+
+  #setDateToPicker = () => {
+    this.#datepicker = flatpickr(
+      this.element.querySelector('#event-end-time-1'),
+      {
+        allowInput: true,
+        enableTime: true,
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateTo,
+        minDate: this._state.dateFrom,
+        onChange: this.#dateToChangeHandler,
+      }
+    );
+  };
+
   #setInnerHandlers = () => {
     this.element.querySelector('.event__type-list').addEventListener('click', this.#changeWaypointTypeHandler);
     this.element.querySelector('.event__input--destination').addEventListener('change', this.#changeDestinationHandler);
+    this.#setDateFromPicker();
+    this.#setDateToPicker();
   };
 }
