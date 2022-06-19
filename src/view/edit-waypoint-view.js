@@ -3,6 +3,7 @@ import { offersPlusTypes, citysNames, getRandomDescription, getRandomPic } from 
 import dayjs from 'dayjs';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
+import he from 'he';
 
 const getWaypointOffers = (offers) => {
   let waypointOffers = '';
@@ -103,7 +104,9 @@ const createEditWaypointFormTemplate = (waypoint) => {
             <label class="event__label  event__type-output" for="event-destination-1">
               ${type}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination" value="${destination.name}" list="destination-list-1">
+            <input class="event__input  event__input--destination" id="event-destination-1" type="text" name="event-destination"
+              value="${he.encode(destination.name)}" list="destination-list-1"
+            >
             <datalist id="destination-list-1">
               ${getDestinations()}
             </datalist>
@@ -122,7 +125,7 @@ const createEditWaypointFormTemplate = (waypoint) => {
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-1" type="text" name="event-price" value="${basePrice}">
+            <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${basePrice}">
           </div>
 
           <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
@@ -170,10 +173,7 @@ export default class EditWaypointFormView extends AbstrAbstractStatefulView {
 
   static parseWaypointToState = (waypoint) => ({...waypoint});
 
-  static parseStateToWaypoint = (state) => {
-    const waypoint = {...state};
-    return waypoint;
-  };
+  static parseStateToWaypoint = (state) => ({...state});
 
   setClickHandler = (callback) => {
     this._callback.click = callback;
@@ -188,6 +188,11 @@ export default class EditWaypointFormView extends AbstrAbstractStatefulView {
   setFavoriteClickHandler = (callback) => {
     this._callback.favoriteButtonClick = callback;
     this.element.querySelector('.event__favorite-btn').addEventListener('click', this.#favoriteClickHandler);
+  };
+
+  setDeleteClickHandler = (callback) => {
+    this._callback.deleteWaypoint = callback;
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#deleteClickHandler);
   };
 
   reset = (waypoint) => {
@@ -209,6 +214,7 @@ export default class EditWaypointFormView extends AbstrAbstractStatefulView {
     this.#setInnerHandlers();
     this.setSubmitHandler(this._callback.submit);
     this.setClickHandler(this._callback.click);
+    this.setDeleteClickHandler(this._callback.deleteWaypoint);
   };
 
   #clickHandler = (evt) => {
@@ -218,12 +224,16 @@ export default class EditWaypointFormView extends AbstrAbstractStatefulView {
 
   #submitHandler = (evt) => {
     evt.preventDefault();
-    this._callback.submit();
+    this._callback.submit(EditWaypointFormView.parseStateToWaypoint(this._state));
   };
 
   #favoriteClickHandler = (evt) => {
     evt.preventDefault();
     this._callback.favoriteButtonClick();
+  };
+
+  #deleteClickHandler = () => {
+    this._callback.deleteWaypoint(EditWaypointFormView.parseStateToWaypoint(this._state));
   };
 
   #changeWaypointTypeHandler = (evt) => {

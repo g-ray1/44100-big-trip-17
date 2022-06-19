@@ -1,11 +1,7 @@
 import {render, replace, remove} from '../framework/render.js';
+import { Mode, UserAction, UpdateType } from '../const.js';
 import WaypointView from '../view/waypoint-view.js';
 import EditWaypointFormView from '../view/edit-waypoint-view.js';
-
-const Mode = {
-  DEFAULT: 'DEFAULT',
-  EDITING: 'EDITING',
-};
 
 export default class WaypointPresenter {
   #waypoint = null;
@@ -33,6 +29,7 @@ export default class WaypointPresenter {
     this.#waypointComponent.setFavoriteClickHandler(this.#favoriteClickHandler);
     this.#waypointEditComponent.setClickHandler(this.#rollUpClickHandler);
     this.#waypointEditComponent.setSubmitHandler(this.#formSubmitHandler);
+    this.#waypointEditComponent.setDeleteClickHandler(this.#formDeleteHandler);
 
     if (prevWaypointComponent === null || prevWaypointEditComponent === null) {
       render(this.#waypointComponent, this.#waypointsList);
@@ -57,13 +54,13 @@ export default class WaypointPresenter {
   };
 
   #replaceWaypointToEditForm = () => {
-    this.#waypointsList.replaceChild(this.#waypointEditComponent.element, this.#waypointComponent.element);
+    replace(this.#waypointEditComponent, this.#waypointComponent);
     this.#changeMode();
     this.#mode = Mode.EDITING;
   };
 
   #replaceEditFormToWaypoint = () => {
-    this.#waypointsList.replaceChild(this.#waypointComponent.element, this.#waypointEditComponent.element);
+    replace(this.#waypointComponent, this.#waypointEditComponent);
     this.#mode = Mode.DEFAULT;
   };
 
@@ -77,8 +74,22 @@ export default class WaypointPresenter {
     document.removeEventListener('keydown', this.#setDownHandler);
   };
 
-  #formSubmitHandler = () => {
-    this.#changeData(this.#waypoint);
+  #formSubmitHandler = (waypoint) => {
+    this.#changeData(
+      UserAction.UPDATE_TASK,
+      UpdateType.MINOR,
+      waypoint,
+    );
+    this.#replaceEditFormToWaypoint();
+    document.removeEventListener('keydown', this.#setDownHandler);
+  };
+
+  #formDeleteHandler = (waypoint) => {
+    this.#changeData(
+      UserAction.DELETE_TASK,
+      UpdateType.MINOR,
+      waypoint,
+    );
     this.#replaceEditFormToWaypoint();
     document.removeEventListener('keydown', this.#setDownHandler);
   };
@@ -92,7 +103,11 @@ export default class WaypointPresenter {
   };
 
   #favoriteClickHandler = () => {
-    this.#changeData({ ...this.#waypoint, isFavorite: !this.#waypoint.isFavorite });
+    this.#changeData(
+      UserAction.UPDATE_TASK,
+      UpdateType.MINOR,
+      { ...this.#waypoint, isFavorite: !this.#waypoint.isFavorite },
+    );
   };
 
   resetView = () => {
