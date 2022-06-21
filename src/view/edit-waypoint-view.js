@@ -1,39 +1,43 @@
 import AbstrAbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { offersPlusTypes, citysNames, getRandomDescription, getRandomPic } from '../mock/waypoint.js';
 import dayjs from 'dayjs';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import he from 'he';
 
-const getWaypointOffers = (offers) => {
-  let waypointOffers = '';
-  offers.forEach((offer) => {
-    waypointOffers += `
-      <div class="event__offer-selector">
-        <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.title}-1" type="checkbox" name="event-offer-${offer.title}" checked>
-        <label class="event__offer-label" for="event-offer-${offer.title}-1">
-          <span class="event__offer-title">Add ${offer.title}</span>
-            &plus;&euro;&nbsp;
-          <span class="event__offer-price">${offer.price}</span>
-        </label>
-      </div>
-    `;
+const getOffers = (waypoint, offersList) => {
+  const offersByType = offersList.find((item) => item.type === waypoint.type).offers;
+  let checkedOffers = '';
+
+  offersByType.forEach((offer) => {
+    checkedOffers += `
+          <div class="event__offer-selector">
+            <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.title}-1" type="checkbox" name="event-offer-${offer.title}"
+              ${waypoint.offers.find((item) => item === offer.id) ? 'checked' : ''}
+            >
+            <label class="event__offer-label" for="event-offer-${offer.title}-1">
+              <span class="event__offer-title">Add ${offer.title}</span>
+                &plus;&euro;&nbsp;
+              <span class="event__offer-price">${offer.price}</span>
+            </label>
+          </div>`;
   });
-  return waypointOffers;
+  return checkedOffers;
 };
 
-const getDestinations = () => {
-  let destinations = '';
-  citysNames.forEach((city) => {
-    destinations += `
-      <option value="${city}"></option>
+const getDestinations = (destinations) => {
+  let destinationsList = '';
+
+  destinations.forEach((destination) => {
+    destinationsList += `
+      <option value="${destination.name}"></option>
     `;
   });
-  return destinations;
+
+  return destinationsList;
 };
 
-const createEditWaypointFormTemplate = (waypoint) => {
-  const {destination, type, basePrice, offers, dateFrom, dateTo} = waypoint;
+const createEditWaypointFormTemplate = (waypoint, offersList, destinationsList) => {
+  const {destination, type, basePrice, dateFrom, dateTo} = waypoint;
   const timeIn = dayjs(dateFrom).format('DD/MM/YY HH:mm');
   const timeOut = dayjs(dateTo).format('DD/MM/YY HH:mm');
 
@@ -108,7 +112,7 @@ const createEditWaypointFormTemplate = (waypoint) => {
               value="${he.encode(destination.name)}" list="destination-list-1"
             >
             <datalist id="destination-list-1">
-              ${getDestinations()}
+              ${getDestinations(destinationsList)}
             </datalist>
           </div>
 
@@ -139,7 +143,7 @@ const createEditWaypointFormTemplate = (waypoint) => {
             <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
             <div class="event__available-offers">
-              ${getWaypointOffers(offers)}
+              ${getOffers(waypoint, offersList)}
             </div>
           </section>
 
@@ -160,15 +164,21 @@ const createEditWaypointFormTemplate = (waypoint) => {
 
 export default class EditWaypointFormView extends AbstrAbstractStatefulView {
   #datepicker = null;
+  #sourcedWaypoint = null;
+  #offersList = [];
+  #destinationsList = [];
 
-  constructor(waypoint) {
+  constructor(waypoint, offers, destinations) {
     super();
+    this.#sourcedWaypoint = waypoint;
     this._state = EditWaypointFormView.parseWaypointToState(waypoint);
+    this.#offersList = offers;
+    this.#destinationsList = destinations;
     this.#setInnerHandlers();
   }
 
   get template() {
-    return createEditWaypointFormTemplate(this._state);
+    return createEditWaypointFormTemplate(this._state, this.#offersList, this.#destinationsList);
   }
 
   static parseWaypointToState = (waypoint) => ({...waypoint});
@@ -185,19 +195,14 @@ export default class EditWaypointFormView extends AbstrAbstractStatefulView {
     this.element.querySelector('form').addEventListener('submit', this.#submitHandler);
   };
 
-  setFavoriteClickHandler = (callback) => {
-    this._callback.favoriteButtonClick = callback;
-    this.element.querySelector('.event__favorite-btn').addEventListener('click', this.#favoriteClickHandler);
-  };
-
   setDeleteClickHandler = (callback) => {
     this._callback.deleteWaypoint = callback;
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#deleteClickHandler);
   };
 
-  reset = (waypoint) => {
+  reset = () => {
     this.updateElement(
-      EditWaypointFormView.parseWaypointToState(waypoint),
+      this.#sourcedWaypoint,
     );
   };
 
@@ -227,11 +232,6 @@ export default class EditWaypointFormView extends AbstrAbstractStatefulView {
     this._callback.submit(EditWaypointFormView.parseStateToWaypoint(this._state));
   };
 
-  #favoriteClickHandler = (evt) => {
-    evt.preventDefault();
-    this._callback.favoriteButtonClick();
-  };
-
   #deleteClickHandler = () => {
     this._callback.deleteWaypoint(EditWaypointFormView.parseStateToWaypoint(this._state));
   };
@@ -242,21 +242,21 @@ export default class EditWaypointFormView extends AbstrAbstractStatefulView {
     }
 
     const newType = evt.target.innerText.toLowerCase();
-    const offersByType = offersPlusTypes.find((item) => item.type === newType).offers;
 
     this.updateElement({
       type: newType,
-      offers: offersByType,
     });
   };
 
   #changeDestinationHandler = (evt) => {
     const newDestination = evt.target.value;
+    const destinationData = this.#destinationsList.find((destination) => destination.name === newDestination);
+
     this.updateElement({
       destination: {
         name: newDestination,
-        description: getRandomDescription(5),
-        pictures: getRandomPic(),
+        description: destinationData.description,
+        pictures: destinationData.pictures,
       }
     });
   };

@@ -5,8 +5,25 @@ const SECONDS_IN_DAY = 86400;
 const SECONDS_IN_HOUR = 3600;
 const SECONDS_IN_MINUTE = 60;
 
-const createWaypointTemplate = (waypoint) => {
-  const {destination, isFavorite, type, basePrice, offers, dateFrom, dateTo} = waypoint;
+const getOffers = (waypoint, offersList) => {
+  const offersByType = offersList.find((item) => item.type === waypoint.type).offers;
+
+  let checkedOffers = '';
+  offersByType.forEach((offer) => {
+    checkedOffers += `
+      <li class="event__offer">
+        <span class="event__offer-title">${offer.title}</span>
+          &plus;&euro;&nbsp;
+        <span class="event__offer-price">${offer.price}</span>
+      </li>
+    `;
+  });
+
+  return checkedOffers;
+};
+
+const createWaypointTemplate = (waypoint, offersList) => {
+  const {destination, isFavorite, type, basePrice, dateFrom, dateTo} = waypoint;
   const favorite = isFavorite ? 'event__favorite-btn--active' : '';
 
   //форматируем даты ивента
@@ -49,18 +66,6 @@ const createWaypointTemplate = (waypoint) => {
     eventDuration += `${timeGapInMinutes}M `;
   }
 
-  //добавляем оферы в разметку
-  let waypointOffers = '';
-  offers.forEach((offer) => {
-    waypointOffers += `
-      <li class="event__offer">
-        <span class="event__offer-title">${offer.title}</span>
-          &plus;&euro;&nbsp;
-        <span class="event__offer-price">${offer.price}</span>
-      </li>
-    `;
-  });
-
   return (
     `<li class="trip-events__item">
       <div class="event">
@@ -82,7 +87,7 @@ const createWaypointTemplate = (waypoint) => {
         </p>
         <h4 class="visually-hidden">Offers:</h4>
         <ul class="event__selected-offers">
-          ${waypointOffers}
+          ${getOffers(waypoint, offersList)}
         </ul>
         <button class="event__favorite-btn ${favorite}" type="button">
           <span class="visually-hidden">Add to favorite</span>
@@ -100,14 +105,16 @@ const createWaypointTemplate = (waypoint) => {
 
 export default class WaypointView extends AbstractView {
   #waypoint = null;
+  #offersList = null;
 
-  constructor(waypoint) {
+  constructor(waypoint, offersList) {
     super();
     this.#waypoint = waypoint;
+    this.#offersList = offersList;
   }
 
   get template() {
-    return createWaypointTemplate(this.#waypoint);
+    return createWaypointTemplate(this.#waypoint, this.#offersList);
   }
 
   setClickHandler = (callback) => {

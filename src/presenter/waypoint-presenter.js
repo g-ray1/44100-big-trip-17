@@ -5,6 +5,8 @@ import EditWaypointFormView from '../view/edit-waypoint-view.js';
 
 export default class WaypointPresenter {
   #waypoint = null;
+  #offers = null;
+  #destinations = null;
   #waypointsList = document.querySelector('.trip-events__list');
   #waypointComponent = null;
   #waypointEditComponent = null;
@@ -17,13 +19,16 @@ export default class WaypointPresenter {
     this.#changeMode = changeMode;
   }
 
-  init = (waypoint) => {
+  init = (waypoint, offers, destinations) => {
     this.#waypoint = waypoint;
+    this.#offers = offers;
+    this.#destinations = destinations;
+
     const prevWaypointComponent = this.#waypointComponent;
     const prevWaypointEditComponent = this.#waypointEditComponent;
 
-    this.#waypointComponent = new WaypointView(this.#waypoint);
-    this.#waypointEditComponent =  new  EditWaypointFormView(this.#waypoint);
+    this.#waypointComponent = new WaypointView(this.#waypoint, this.#offers);
+    this.#waypointEditComponent =  new  EditWaypointFormView(this.#waypoint, this.#offers, this.#destinations);
 
     this.#waypointComponent.setClickHandler(this.#rollDownClickHandler);
     this.#waypointComponent.setFavoriteClickHandler(this.#favoriteClickHandler);
@@ -70,6 +75,7 @@ export default class WaypointPresenter {
   };
 
   #rollUpClickHandler = () => {
+    this.#waypointEditComponent.reset();
     this.#replaceEditFormToWaypoint();
     document.removeEventListener('keydown', this.#setDownHandler);
   };
@@ -97,6 +103,7 @@ export default class WaypointPresenter {
   #setDownHandler = (evt) => {
     if (evt.key === 'Escape' || evt.key === 'Esc') {
       evt.preventDefault();
+      this.#waypointEditComponent.reset();
       this.#replaceEditFormToWaypoint();
       document.removeEventListener('keydown', this.#setDownHandler);
     }
@@ -112,7 +119,7 @@ export default class WaypointPresenter {
 
   resetView = () => {
     if (this.#mode !== Mode.DEFAULT) {
-      this.#waypointEditComponent.reset(this.#waypoint);
+      this.#waypointEditComponent.reset();
       this.#replaceEditFormToWaypoint();
     }
   };
