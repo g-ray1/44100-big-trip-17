@@ -7,19 +7,23 @@ import EmptyListMessageView from '../view/empty-list-view.js';
 import { FilterType, SortingMode, UpdateType, UserAction } from '../const.js';
 import { getWeightForTime, getWeightForPrice, getWeightForDay, filter} from '../utils.js';
 import AddNewWaypointPresenter from './add-new-waypoint-presenter.js';
+import LoadingView from '../view/loading-view.js';
 
 export default class BoardPresenter {
   #mainContainer = document.querySelector('.trip-events');
   #sortComponent = new SortingFormView();
   #addNewWayointComponent = new AddNewWaypointFormView();
   #waypointsList = new WaypointsListView();
+  #loadingComponent = new LoadingView();
   #emptyListComponent = null;
+
   #waypointsModel = null;
   #filtersModel = null;
   #waypointsPresenters = new Map();
   #addNewWaypointPresenter = null;
   #currentSortType = SortingMode.DAY;
   #currentFilterType = null;
+  #isLoading = true;
 
   constructor(waypointsModel, filtersModel) {
     this.#waypointsModel = waypointsModel;
@@ -65,9 +69,9 @@ export default class BoardPresenter {
     render(this.#waypointsList, this.#mainContainer);
   };
 
-  #renderWaypoint = (waypoint) => {
+  #renderWaypoint = (waypoint, offers, destinations) => {
     const waypointPresenter = new WaypointPresenter(this.#handleViewAction, this.#handleModeChange);
-    waypointPresenter.init(waypoint);
+    waypointPresenter.init(waypoint, offers, destinations);
     this.#waypointsPresenters.set(waypoint.id, waypointPresenter);
   };
 
@@ -78,6 +82,9 @@ export default class BoardPresenter {
 
   #renderWaypoints = () => {
     const waypoints = this.waypoints;
+    const offers = this.#waypointsModel.offers;
+    const destinations = this.#waypointsModel.destinations;
+
     if (waypoints.length === 0) {
       if (this.#emptyListComponent){
         remove(this.#emptyListComponent);
@@ -88,13 +95,19 @@ export default class BoardPresenter {
         remove(this.#emptyListComponent);
       }
       for (let i = 0; i < waypoints.length; i++) {
-        this.#renderWaypoint(waypoints[i]);
+        this.#renderWaypoint(waypoints[i], offers, destinations);
       }
     }
   };
 
   #renderBoard = () => {
     this.#renderSortingComponent();
+
+    if (this.#isLoading) {
+      this.#renderLoading();
+      return;
+    }
+
     this.#renderWaypointsList();
     this.#renderWaypoints();
   };
@@ -131,6 +144,11 @@ export default class BoardPresenter {
         this.#clearWaypointsList();
         this.#renderBoard();
         break;
+      case UpdateType.INIT:
+        this.#isLoading = false;
+        remove(this.#loadingComponent);
+        this.#renderBoard();
+        break;
     }
   };
 
@@ -146,5 +164,9 @@ export default class BoardPresenter {
     this.#currentSortType = sortType;
     this.#clearWaypointsList();
     this.#renderWaypoints();
+  };
+
+  #renderLoading = () => {
+    render(this.#loadingComponent, this.#mainContainer);
   };
 }
