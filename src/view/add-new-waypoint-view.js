@@ -53,7 +53,7 @@ const getOffers = (type, offersList) => {
 };
 
 const createAddNewWaypointFormTemplate = (state, destinationsList, offersList) => {
-  const {destination, type, basePrice, dateFrom, dateTo, isDisabled, isSaving, isDeliting} = state;
+  const {destination, type, basePrice, dateFrom, dateTo, isDisabled, isSaving} = state;
   const timeIn = dayjs(dateFrom).format('DD/MM/YY HH:mm');
   const timeOut = dayjs(dateTo).format('DD/MM/YY HH:mm');
 
