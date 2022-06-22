@@ -4,15 +4,25 @@ import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import he from 'he';
 
-const getOffers = (waypoint, offersList) => {
+const getOffers = (waypoint, offersList, typeIsChanged) => {
   const offersByType = offersList.find((item) => item.type === waypoint.type).offers;
+
   let checkedOffers = '';
 
   offersByType.forEach((offer) => {
+    const checkChange = () => {
+      if (typeIsChanged) {
+        return '';
+      } else {
+        return waypoint.offers.find((item) => item === offer.id) ? 'checked' : '';
+      }
+    };
+
     checkedOffers += `
           <div class="event__offer-selector">
             <input class="event__offer-checkbox  visually-hidden" id="event-offer-${offer.title}-1" type="checkbox" name="event-offer-${offer.title}"
-              ${waypoint.offers.find((item) => item === offer.id) ? 'checked' : ''}
+              value='${offer.id}' ${waypoint.isDisabled ? 'disabled' : ''}
+              ${checkChange()}
             >
             <label class="event__offer-label" for="event-offer-${offer.title}-1">
               <span class="event__offer-title">Add ${offer.title}</span>
@@ -36,8 +46,14 @@ const getDestinations = (destinations) => {
   return destinationsList;
 };
 
-const createEditWaypointFormTemplate = (waypoint, offersList, destinationsList) => {
-  const {destination, type, basePrice, dateFrom, dateTo} = waypoint;
+const getPictures = (destination) => (
+  `
+    ${destination ? destination.pictures.map((pic) => `<img class="event__photo" src="${pic.src}" alt="${pic.description}">`).join('') : ''}
+  `
+);
+
+const createEditWaypointFormTemplate = (state, offersList, destinationsList, typeIsChanged) => {
+  const {destination, type, basePrice, dateFrom, dateTo, isDisabled, isSaving, isDeliting} = state;
   const timeIn = dayjs(dateFrom).format('DD/MM/YY HH:mm');
   const timeOut = dayjs(dateTo).format('DD/MM/YY HH:mm');
 
@@ -46,14 +62,14 @@ const createEditWaypointFormTemplate = (waypoint, offersList, destinationsList) 
       <form class="event event--edit" action="#" method="post">
         <header class="event__header">
           <div class="event__type-wrapper">
-            <label class="event__type  event__type-btn" for="event-type-toggle-1">
+            <label class="event__type  event__type-btn" for="event-type-toggle-1"}>
               <span class="visually-hidden">Choose event type</span>
               <img class="event__type-icon" width="17" height="17" src="img/icons/${type}.png" alt="Event type icon">
             </label>
             <input class="event__type-toggle  visually-hidden" id="event-type-toggle-1" type="checkbox">
 
             <div class="event__type-list">
-              <fieldset class="event__type-group">
+              <fieldset class="event__type-group" ${isDisabled ? 'disabled' : ''}>
                 <legend class="visually-hidden">Event type</legend>
 
                 <div class="event__type-item">
@@ -118,10 +134,10 @@ const createEditWaypointFormTemplate = (waypoint, offersList, destinationsList) 
 
           <div class="event__field-group  event__field-group--time">
             <label class="visually-hidden" for="event-start-time-1">From</label>
-            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" value="${timeIn}">
+            <input class="event__input  event__input--time" id="event-start-time-1" type="text" name="event-start-time" ${isDisabled ? 'disabled' : ''} value="${timeIn}">
             &mdash;
             <label class="visually-hidden" for="event-end-time-1">To</label>
-            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" value="${timeOut}">
+            <input class="event__input  event__input--time" id="event-end-time-1" type="text" name="event-end-time" ${isDisabled ? 'disabled' : ''} value="${timeOut}">
           </div>
 
           <div class="event__field-group  event__field-group--price">
@@ -129,12 +145,12 @@ const createEditWaypointFormTemplate = (waypoint, offersList, destinationsList) 
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" value="${basePrice}">
+            <input class="event__input  event__input--price" id="event-price-1" type="number" name="event-price" ${isDisabled ? 'disabled' : ''} value="${basePrice}">
           </div>
 
-          <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
-          <button class="event__reset-btn" type="reset">Delete</button>
-          <button class="event__rollup-btn" type="button">
+          <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
+          <button class="event__reset-btn" type="reset"  ${isDisabled ? 'disabled' : ''}>${isDeliting ? 'Deleting...' : 'Delete'}</button>
+          <button class="event__rollup-btn" type="button" ${isDisabled ? 'disabled' : ''}>
             <span class="visually-hidden">Open event</span>
           </button>
         </header>
@@ -143,7 +159,7 @@ const createEditWaypointFormTemplate = (waypoint, offersList, destinationsList) 
             <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
             <div class="event__available-offers">
-              ${getOffers(waypoint, offersList)}
+              ${getOffers(state, offersList, typeIsChanged)}
             </div>
           </section>
 
@@ -152,7 +168,7 @@ const createEditWaypointFormTemplate = (waypoint, offersList, destinationsList) 
             <p class="event__destination-description">${destination.description}</p>
             <div class="event__photos-container">
 	            <div class="event__photos-tape">
-		            <img class="event__photo" src="${destination.pictures[0].src}" alt="${destination.pictures[0].description}">
+                ${getPictures(destination)}
 	            </div>
             </div>
           </section>
@@ -167,6 +183,7 @@ export default class EditWaypointFormView extends AbstrAbstractStatefulView {
   #sourcedWaypoint = null;
   #offersList = [];
   #destinationsList = [];
+  #typeIsChanged = false;
 
   constructor(waypoint, offers, destinations) {
     super();
@@ -178,12 +195,24 @@ export default class EditWaypointFormView extends AbstrAbstractStatefulView {
   }
 
   get template() {
-    return createEditWaypointFormTemplate(this._state, this.#offersList, this.#destinationsList);
+    return createEditWaypointFormTemplate(this._state, this.#offersList, this.#destinationsList, this.#typeIsChanged);
   }
 
-  static parseWaypointToState = (waypoint) => ({...waypoint});
+  static parseWaypointToState = (waypoint) => ({...waypoint,
+    isDisabled: false,
+    isSaving: false,
+    isDeliting: false,
+  });
 
-  static parseStateToWaypoint = (state) => ({...state});
+  static parseStateToWaypoint = (state) => {
+    const waypoint = {...state};
+
+    delete waypoint.isDisabled;
+    delete waypoint.isSaving;
+    delete waypoint.isDeliting;
+
+    return waypoint;
+  };
 
   setClickHandler = (callback) => {
     this._callback.click = callback;
@@ -204,6 +233,7 @@ export default class EditWaypointFormView extends AbstrAbstractStatefulView {
     this.updateElement(
       this.#sourcedWaypoint,
     );
+    this.#typeIsChanged = false;
   };
 
   removeElement = () => {
@@ -242,7 +272,7 @@ export default class EditWaypointFormView extends AbstrAbstractStatefulView {
     }
 
     const newType = evt.target.innerText.toLowerCase();
-
+    this.#typeIsChanged = true;
     this.updateElement({
       type: newType,
     });
@@ -301,9 +331,37 @@ export default class EditWaypointFormView extends AbstrAbstractStatefulView {
     );
   };
 
+  #handleToggleOffer = (evt) => {
+    evt.preventDefault();
+    const selectedOffers = this._state.offers;
+    const targetValue = parseInt(evt.target.value, 10);
+
+    if (evt.target.checked && !selectedOffers.find((offer) => offer === targetValue)) {
+      selectedOffers.push(targetValue);
+    } else {
+      const myIndex = selectedOffers.indexOf(targetValue);
+      if ( myIndex !== -1 ) {
+        selectedOffers.splice(myIndex, 1);
+      }
+    }
+
+    this._setState({
+      offers: selectedOffers,
+    });
+  };
+
+  #handlePriceChange = (evt) => {
+    evt.preventDefault();
+    this._setState({
+      basePrice: parseInt(evt.target.value, 10),
+    });
+  };
+
   #setInnerHandlers = () => {
     this.element.querySelector('.event__type-list').addEventListener('click', this.#changeWaypointTypeHandler);
     this.element.querySelector('.event__input--destination').addEventListener('change', this.#changeDestinationHandler);
+    this.element.querySelector('.event__available-offers').addEventListener('change', this.#handleToggleOffer);
+    this.element.querySelector('.event__field-group.event__field-group--price').addEventListener('change', this.#handlePriceChange);
     this.#setDateFromPicker();
     this.#setDateToPicker();
   };

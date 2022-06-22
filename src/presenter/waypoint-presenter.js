@@ -86,7 +86,7 @@ export default class WaypointPresenter {
       UpdateType.MINOR,
       waypoint,
     );
-    this.#replaceEditFormToWaypoint();
+
     document.removeEventListener('keydown', this.#setDownHandler);
   };
 
@@ -122,5 +122,40 @@ export default class WaypointPresenter {
       this.#waypointEditComponent.reset();
       this.#replaceEditFormToWaypoint();
     }
+  };
+
+  setSaving = () => {
+    if (this.#mode === Mode.EDITING) {
+      this.#waypointEditComponent.updateElement({
+        isDisabled: true,
+        isSaving: true,
+      });
+    }
+  };
+
+  setDeleting = () => {
+    if (this.#mode === Mode.EDITING) {
+      this.#waypointEditComponent.updateElement({
+        isDisabled: true,
+        isDeleting: true,
+      });
+    }
+  };
+
+  setAborting = () => {
+    if (this.#mode === Mode.DEFAULT) {
+      this.#waypointEditComponent.shake();
+      return;
+    }
+
+    const resetFormState = () => {
+      this.#waypointEditComponent.updateElement({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+
+    this.#waypointEditComponent.shake(resetFormState);
   };
 }

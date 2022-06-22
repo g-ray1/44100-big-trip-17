@@ -34,3 +34,4 @@ waypointsModel.init()
     render(newWaypointButtonComponent, newWaypointButtonContainer);
     newWaypointButtonComponent.setClickHandler(handleNewWaypointButtonClick);
   });
+
