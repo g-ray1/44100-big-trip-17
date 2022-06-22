@@ -1,18 +1,17 @@
 import { remove, render } from '../framework/render.js';
 import SortingFormView from '../view/sorting-view.js';
-import AddNewWaypointFormView from '../view/add-new-waypoint-view.js';
 import WaypointsListView from '../view/waypoints-list-view.js';
 import WaypointPresenter from './waypoint-presenter.js';
 import EmptyListMessageView from '../view/empty-list-view.js';
-import { FilterType, SortingMode, UpdateType, UserAction } from '../const.js';
+import { FilterType, SortingMode, UpdateType, UserAction, BlockTimeLimit } from '../const.js';
 import { getWeightForTime, getWeightForPrice, getWeightForDay, filter} from '../utils.js';
 import AddNewWaypointPresenter from './add-new-waypoint-presenter.js';
 import LoadingView from '../view/loading-view.js';
+import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 
 export default class BoardPresenter {
   #mainContainer = document.querySelector('.trip-events');
   #sortComponent = new SortingFormView();
-  #addNewWayointComponent = new AddNewWaypointFormView();
   #waypointsList = new WaypointsListView();
   #loadingComponent = new LoadingView();
   #emptyListComponent = null;
@@ -24,11 +23,11 @@ export default class BoardPresenter {
   #currentSortType = SortingMode.DAY;
   #currentFilterType = null;
   #isLoading = true;
+  #uiBlocker = new UiBlocker(BlockTimeLimit.LOWER_LIMIT, BlockTimeLimit.UPPER_LIMIT);
 
   constructor(waypointsModel, filtersModel) {
     this.#waypointsModel = waypointsModel;
     this.#filtersModel = filtersModel;
-
     this.#addNewWaypointPresenter = new AddNewWaypointPresenter(this.#waypointsList.element, this.#handleViewAction);
 
     this.#waypointsModel.addObserver(this.#handleModelEvent);
@@ -57,7 +56,7 @@ export default class BoardPresenter {
   createWaypoint = (callback) => {
     this.#currentSortType = SortingMode.DAY;
     this.#filtersModel.setFilter(UpdateType.MINOR, FilterType.EVERYTHING);
-    this.#addNewWaypointPresenter.init(callback);
+    this.#addNewWaypointPresenter.init(callback, this.#waypointsModel);
   };
 
   #renderSortingComponent = () => {
@@ -118,17 +117,37 @@ export default class BoardPresenter {
     this.#waypointsPresenters.clear();
   };
 
-  #handleViewAction = (actionType, updateType, update) => {
+  #handleViewAction = async (actionType, updateType, update) => {
+    this.#uiBlocker.block();
+
     switch(actionType) {
       case UserAction.UPDATE_TASK:
-        this.#waypointsModel.updateWaypoint(updateType, update);
+        this.#waypointsPresenters.get(update.id).setSaving();
+        try {
+          await this.#waypointsModel.updateWaypoint(updateType, update);
+        } catch(err) {
+          this.#waypointsPresenters.get(update.id).setAborting();
+        }
         break;
       case UserAction.ADD_TASK:
-        this.#waypointsModel.addWaypoint(updateType, update);
+        this.#addNewWaypointPresenter.setSaving();
+        try {
+          await this.#waypointsModel.addWaypoint(updateType, update);
+        } catch(err) {
+          this.#addNewWaypointPresenter.get(update.id).setAborting();
+        }
         break;
       case UserAction.DELETE_TASK:
-        this.#waypointsModel.deleteWaypoint(updateType, update);
+        this.#waypointsPresenters.get(update.id).setDeleting();
+        try {
+          this.#waypointsModel.deleteWaypoint(updateType, update);
+        } catch(err) {
+          this.#waypointsPresenters.get(update.id).setAborting();
+        }
+        break;
     }
+
+    this.#uiBlocker.unblock();
   };
 
   #handleModelEvent = (updateType, waypoint) => {

@@ -14,9 +14,9 @@ export default class AddNewWaypointPresenter {
     this.#changeData = changeData;
   }
 
-  init = (callback) => {
+  init = (callback, waypointsModel) => {
     this.#destroyCallback = callback;
-    this.#addNewWaypointComponent = new AddNewWaypointView();
+    this.#addNewWaypointComponent = new AddNewWaypointView(waypointsModel);
 
     this.#addNewWaypointComponent.setSubmitHandler(this.#formSubmitHandler);
     this.#addNewWaypointComponent.setCancelClickHandler(this.#formCancelHandler);
@@ -42,8 +42,6 @@ export default class AddNewWaypointPresenter {
       UpdateType.MINOR,
       {id: nanoid(), ...waypoint},
     );
-    this.destroy();
-
   };
 
   #formCancelHandler = () => {
@@ -56,5 +54,26 @@ export default class AddNewWaypointPresenter {
       this.destroy();
       document.removeEventListener('keydown', this.#setEscDownHandler);
     }
+  };
+
+  setSaving = () => {
+    this.#addNewWaypointComponent.updateElement({
+      isDisabled: true,
+      isSaving: true,
+    });
+  };
+
+  setAborting = () => {
+    this.#addNewWaypointComponent.shake();
+
+    const resetFormState = () => {
+      this.#addNewWaypointComponent.updateElement({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+
+    this.#addNewWaypointComponent.shake(resetFormState);
   };
 }

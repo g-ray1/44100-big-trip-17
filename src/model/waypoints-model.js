@@ -65,13 +65,19 @@ export default class WaypointsModel extends Observable {
     return adaptedWaypoint;
   };
 
-  addWaypoint = (updateType, update) => {
-    this.#waypoints = [
-      ...this.#waypoints,
-      update,
-    ];
+  addWaypoint = async (updateType, update) => {
+    try {
+      const response = await this.#waypointsApiService.addPoint(update);
+      const newWaypoint = this.#adaptToClient(response);
+      this.#waypoints = [
+        newWaypoint,
+        ...this.#waypoints,
+      ];
 
-    this._notify(updateType, update);
+      this._notify(updateType, newWaypoint);
+    } catch(err) {
+      throw new  Error('Can\'t add waypoint');
+    }
   };
 
   updateWaypoint = async (updateType, update) => {
@@ -93,14 +99,23 @@ export default class WaypointsModel extends Observable {
     }
   };
 
-  deleteWaypoint = (updateType, update) => {
+  deleteWaypoint = async (updateType, update) => {
     const index = this.#waypoints.findIndex((waypoint) => waypoint.id === update.id);
 
-    this.#waypoints = [
-      ...this.#waypoints.slice(0, index),
-      ...this.#waypoints.slice(index + 1),
-    ];
+    if (index === -1) {
+      throw new Error('Can\'t delete unexisting event');
+    }
 
-    this._notify(updateType, update);
+    try {
+      await this.#waypointsApiService.deletePoint(update);
+      this.#waypoints = [
+        ...this.#waypoints.slice(0, index),
+        ...this.#waypoints.slice(index + 1),
+      ];
+      this._notify(updateType, update);
+    } catch(err) {
+      throw new Error('Can\'t delete event');
+    }
+
   };
 }

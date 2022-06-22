@@ -10,13 +10,15 @@ const getOffers = (waypoint, offersList) => {
 
   let checkedOffers = '';
   offersByType.forEach((offer) => {
-    checkedOffers += `
-      <li class="event__offer">
-        <span class="event__offer-title">${offer.title}</span>
-          &plus;&euro;&nbsp;
-        <span class="event__offer-price">${offer.price}</span>
-      </li>
-    `;
+    if (waypoint.offers.find((item) => item === offer.id)) {
+      checkedOffers += `
+        <li class="event__offer">
+          <span class="event__offer-title">${offer.title}</span>
+            &plus;&euro;&nbsp;
+          <span class="event__offer-price">${offer.price}</span>
+        </li>
+      `;
+    }
   });
 
   return checkedOffers;

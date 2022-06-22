@@ -4,7 +4,7 @@ import { FilterType } from './const.js';
 export const getRandomInt = (max) => Math.floor(Math.random() * max);
 export const getRandomElement = (array) => array[Math.floor(Math.random() * array.length)];
 
-export const getWeightForDay = (firstItem, secondItem) => dayjs(firstItem.dateTo).diff(dayjs(secondItem.dateTo), 'seconds');
+export const getWeightForDay = (firstItem, secondItem) => dayjs(firstItem.dateFrom).diff(dayjs(secondItem.dateFrom));
 
 export const getWeightForPrice = (firstItem, secondItem) => secondItem.basePrice - firstItem.basePrice;
 

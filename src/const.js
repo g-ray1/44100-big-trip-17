@@ -27,3 +27,8 @@ export const UpdateType = {
   MAJOR: 'MAJOR',
   INIT: 'INIT'
 };
+
+export const BlockTimeLimit = {
+  LOWER_LIMIT: 350,
+  UPPER_LIMIT: 1000,
+};
