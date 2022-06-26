@@ -27,7 +27,7 @@ const createEditWaypointFormTemplate = (state, offersList, destinationsList) => 
   const timeIn = dayjs(dateFrom).format('DD/MM/YY HH:mm');
   const timeOut = dayjs(dateTo).format('DD/MM/YY HH:mm');
 
-  const getOffers2 = function () {
+  const getOffers = function () {
 
     const currentOffers = offersList.find((offersGroup) => offersGroup.type === type);
 
@@ -166,7 +166,7 @@ const createEditWaypointFormTemplate = (state, offersList, destinationsList) => 
             <h3 class="event__section-title  event__section-title--offers">Offers</h3>
 
             <div class="event__available-offers">
-              ${getOffers2()}
+              ${getOffers()}
             </div>
           </section>
 
