@@ -21,7 +21,7 @@ export default class AddNewWaypointPresenter {
     this.#addNewWaypointComponent.setSubmitHandler(this.#formSubmitHandler);
     this.#addNewWaypointComponent.setCancelClickHandler(this.#formCancelHandler);
 
-    render(this.#addNewWaypointComponent, this.#waypointsContainer, RenderPosition.BEFOREBEGIN);
+    render(this.#addNewWaypointComponent, this.#waypointsContainer, RenderPosition.AFTERBEGIN);
     document.addEventListener('keydown', this.#setEscDownHandler);
   };
 
@@ -34,26 +34,6 @@ export default class AddNewWaypointPresenter {
     remove(this.#addNewWaypointComponent);
     this.#addNewWaypointComponent = null;
     document.removeEventListener('keydown', this.#setEscDownHandler);
-  };
-
-  #formSubmitHandler = (waypoint) => {
-    this.#changeData(
-      UserAction.ADD_TASK,
-      UpdateType.MINOR,
-      {id: nanoid(), ...waypoint},
-    );
-  };
-
-  #formCancelHandler = () => {
-    this.destroy();
-  };
-
-  #setEscDownHandler = (evt) => {
-    if (evt.key === 'Escape' || evt.key === 'Esc') {
-      evt.preventDefault();
-      this.destroy();
-      document.removeEventListener('keydown', this.#setEscDownHandler);
-    }
   };
 
   setSaving = () => {
@@ -75,5 +55,25 @@ export default class AddNewWaypointPresenter {
     };
 
     this.#addNewWaypointComponent.shake(resetFormState);
+  };
+
+  #formSubmitHandler = (waypoint) => {
+    this.#changeData(
+      UserAction.ADD_TASK,
+      UpdateType.MINOR,
+      {id: nanoid(), ...waypoint},
+    );
+  };
+
+  #formCancelHandler = () => {
+    this.destroy();
+  };
+
+  #setEscDownHandler = (evt) => {
+    if (evt.key === 'Escape' || evt.key === 'Esc') {
+      evt.preventDefault();
+      this.destroy();
+      document.removeEventListener('keydown', this.#setEscDownHandler);
+    }
   };
 }

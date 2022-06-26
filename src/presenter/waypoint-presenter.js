@@ -1,13 +1,13 @@
 import {render, replace, remove} from '../framework/render.js';
 import { Mode, UserAction, UpdateType } from '../const.js';
 import WaypointView from '../view/waypoint-view.js';
-import EditWaypointFormView from '../view/edit-waypoint-view.js';
+import EditWaypointFormView from '../view/edit-waypoint-form-view.js';
 
 export default class WaypointPresenter {
   #waypoint = null;
   #offers = null;
   #destinations = null;
-  #waypointsList = document.querySelector('.trip-events__list');
+  #waypointsListContainer = document.querySelector('.trip-events__list');
   #waypointComponent = null;
   #waypointEditComponent = null;
   #changeData = null;
@@ -37,7 +37,7 @@ export default class WaypointPresenter {
     this.#waypointEditComponent.setDeleteClickHandler(this.#formDeleteHandler);
 
     if (prevWaypointComponent === null || prevWaypointEditComponent === null) {
-      render(this.#waypointComponent, this.#waypointsList);
+      render(this.#waypointComponent, this.#waypointsListContainer);
       return;
     }
 
@@ -67,54 +67,6 @@ export default class WaypointPresenter {
   #replaceEditFormToWaypoint = () => {
     replace(this.#waypointComponent, this.#waypointEditComponent);
     this.#mode = Mode.DEFAULT;
-  };
-
-  #rollDownClickHandler = () => {
-    this.#replaceWaypointToEditForm();
-    document.addEventListener('keydown', this.#setDownHandler);
-  };
-
-  #rollUpClickHandler = () => {
-    this.#waypointEditComponent.reset();
-    this.#replaceEditFormToWaypoint();
-    document.removeEventListener('keydown', this.#setDownHandler);
-  };
-
-  #formSubmitHandler = (waypoint) => {
-    this.#changeData(
-      UserAction.UPDATE_TASK,
-      UpdateType.MINOR,
-      waypoint,
-    );
-
-    document.removeEventListener('keydown', this.#setDownHandler);
-  };
-
-  #formDeleteHandler = (waypoint) => {
-    this.#changeData(
-      UserAction.DELETE_TASK,
-      UpdateType.MINOR,
-      waypoint,
-    );
-    this.#replaceEditFormToWaypoint();
-    document.removeEventListener('keydown', this.#setDownHandler);
-  };
-
-  #setDownHandler = (evt) => {
-    if (evt.key === 'Escape' || evt.key === 'Esc') {
-      evt.preventDefault();
-      this.#waypointEditComponent.reset();
-      this.#replaceEditFormToWaypoint();
-      document.removeEventListener('keydown', this.#setDownHandler);
-    }
-  };
-
-  #favoriteClickHandler = () => {
-    this.#changeData(
-      UserAction.UPDATE_TASK,
-      UpdateType.MINOR,
-      { ...this.#waypoint, isFavorite: !this.#waypoint.isFavorite },
-    );
   };
 
   resetView = () => {
@@ -157,5 +109,53 @@ export default class WaypointPresenter {
     };
 
     this.#waypointEditComponent.shake(resetFormState);
+  };
+
+  #rollDownClickHandler = () => {
+    this.#replaceWaypointToEditForm();
+    document.addEventListener('keydown', this.#setDownHandler);
+  };
+
+  #rollUpClickHandler = () => {
+    this.#waypointEditComponent.reset();
+    this.#replaceEditFormToWaypoint();
+    document.removeEventListener('keydown', this.#setDownHandler);
+  };
+
+  #formSubmitHandler = (waypoint) => {
+    this.#changeData(
+      UserAction.UPDATE_TASK,
+      UpdateType.MINOR,
+      waypoint,
+    );
+
+    document.removeEventListener('keydown', this.#setDownHandler);
+  };
+
+  #formDeleteHandler = (waypoint) => {
+    this.#changeData(
+      UserAction.DELETE_TASK,
+      UpdateType.MINOR,
+      waypoint,
+    );
+
+    document.removeEventListener('keydown', this.#setDownHandler);
+  };
+
+  #setDownHandler = (evt) => {
+    if (evt.key === 'Escape' || evt.key === 'Esc') {
+      evt.preventDefault();
+      this.#waypointEditComponent.reset();
+      this.#replaceEditFormToWaypoint();
+      document.removeEventListener('keydown', this.#setDownHandler);
+    }
+  };
+
+  #favoriteClickHandler = () => {
+    this.#changeData(
+      UserAction.UPDATE_TASK,
+      UpdateType.MINOR,
+      { ...this.#waypoint, isFavorite: !this.#waypoint.isFavorite },
+    );
   };
 }

@@ -1,8 +1,8 @@
 import { remove, render } from '../framework/render.js';
-import SortingFormView from '../view/sorting-view.js';
+import SortingFormView from '../view/sorting-form-view.js';
 import WaypointsListView from '../view/waypoints-list-view.js';
 import WaypointPresenter from './waypoint-presenter.js';
-import EmptyListMessageView from '../view/empty-list-view.js';
+import EmptyListMessageView from '../view/empty-list-message-view.js';
 import { FilterType, SortingMode, UpdateType, UserAction, BlockTimeLimit } from '../const.js';
 import { getWeightForTime, getWeightForPrice, getWeightForDay, filter} from '../utils.js';
 import AddNewWaypointPresenter from './add-new-waypoint-presenter.js';
@@ -11,8 +11,8 @@ import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 
 export default class BoardPresenter {
   #mainContainer = document.querySelector('.trip-events');
-  #sortComponent = new SortingFormView();
-  #waypointsList = new WaypointsListView();
+  #sortComponent = null;
+  #waypointsListContainer = new WaypointsListView();
   #loadingComponent = new LoadingView();
   #emptyListComponent = null;
 
@@ -20,6 +20,7 @@ export default class BoardPresenter {
   #filtersModel = null;
   #waypointsPresenters = new Map();
   #addNewWaypointPresenter = null;
+
   #currentSortType = SortingMode.DAY;
   #currentFilterType = null;
   #isLoading = true;
@@ -28,7 +29,7 @@ export default class BoardPresenter {
   constructor(waypointsModel, filtersModel) {
     this.#waypointsModel = waypointsModel;
     this.#filtersModel = filtersModel;
-    this.#addNewWaypointPresenter = new AddNewWaypointPresenter(this.#waypointsList.element, this.#handleViewAction);
+    this.#addNewWaypointPresenter = new AddNewWaypointPresenter(this.#waypointsListContainer.element, this.#handleViewAction);
 
     this.#waypointsModel.addObserver(this.#handleModelEvent);
     this.#filtersModel.addObserver(this.#handleModelEvent);
@@ -60,12 +61,16 @@ export default class BoardPresenter {
   };
 
   #renderSortingComponent = () => {
+    if (this.#sortComponent) {
+      remove(this.#sortComponent);
+    }
+    this.#sortComponent = new SortingFormView(this.#currentSortType);
     render(this.#sortComponent, this.#mainContainer);
     this.#sortComponent.setSortTypeChangeHandler(this.#handleSortTypeChange);
   };
 
   #renderWaypointsList = () => {
-    render(this.#waypointsList, this.#mainContainer);
+    render(this.#waypointsListContainer, this.#mainContainer);
   };
 
   #renderWaypoint = (waypoint, offers, destinations) => {
@@ -93,8 +98,8 @@ export default class BoardPresenter {
       if (this.#emptyListComponent){
         remove(this.#emptyListComponent);
       }
-      for (let i = 0; i < waypoints.length; i++) {
-        this.#renderWaypoint(waypoints[i], offers, destinations);
+      for (const waypoint of waypoints) {
+        this.#renderWaypoint(waypoint, offers, destinations);
       }
     }
   };
@@ -117,6 +122,10 @@ export default class BoardPresenter {
     this.#waypointsPresenters.clear();
   };
 
+  #renderLoading = () => {
+    render(this.#loadingComponent, this.#mainContainer);
+  };
+
   #handleViewAction = async (actionType, updateType, update) => {
     this.#uiBlocker.block();
 
@@ -134,13 +143,13 @@ export default class BoardPresenter {
         try {
           await this.#waypointsModel.addWaypoint(updateType, update);
         } catch(err) {
-          this.#addNewWaypointPresenter.get(update.id).setAborting();
+          this.#addNewWaypointPresenter.setAborting();
         }
         break;
       case UserAction.DELETE_TASK:
         this.#waypointsPresenters.get(update.id).setDeleting();
         try {
-          this.#waypointsModel.deleteWaypoint(updateType, update);
+          await this.#waypointsModel.deleteWaypoint(updateType, update);
         } catch(err) {
           this.#waypointsPresenters.get(update.id).setAborting();
         }
@@ -182,10 +191,6 @@ export default class BoardPresenter {
     }
     this.#currentSortType = sortType;
     this.#clearWaypointsList();
-    this.#renderWaypoints();
-  };
-
-  #renderLoading = () => {
-    render(this.#loadingComponent, this.#mainContainer);
+    this.#renderBoard();
   };
 }

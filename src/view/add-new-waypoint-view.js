@@ -70,40 +70,67 @@ const createAddNewWaypointFormTemplate = (state, destinationsList, offersList) =
                     <div class="event__type-list">
                       <fieldset class="event__type-group" ${isDisabled ? 'disabled' : ''}>
                         <legend class="visually-hidden">Event type</legend>
+
                         <div class="event__type-item">
-                          <input id="event-type-taxi-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="taxi">
+                          <input id="event-type-taxi-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="taxi"
+                            ${type === 'taxi' ? 'checked' : ''}
+                            >
                           <label class="event__type-label  event__type-label--taxi" for="event-type-taxi-1">Taxi</label>
                         </div>
+
                         <div class="event__type-item">
-                          <input id="event-type-bus-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="bus">
+                          <input id="event-type-bus-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="bus"
+                            ${type === 'bus' ? 'checked' : ''}
+                          >
                           <label class="event__type-label  event__type-label--bus" for="event-type-bus-1">Bus</label>
                         </div>
+
                         <div class="event__type-item">
-                          <input id="event-type-train-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="train">
+                          <input id="event-type-train-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="train"
+                            ${type === 'train' ? 'checked' : ''}
+                          >
                           <label class="event__type-label  event__type-label--train" for="event-type-train-1">Train</label>
                         </div>
+
                         <div class="event__type-item">
-                          <input id="event-type-ship-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="ship">
+                          <input id="event-type-ship-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="ship"
+                            ${type === 'ship' ? 'checked' : ''}
+                          >
                           <label class="event__type-label  event__type-label--ship" for="event-type-ship-1">Ship</label>
                         </div>
+
                         <div class="event__type-item">
-                          <input id="event-type-drive-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="drive">
+                          <input id="event-type-drive-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="drive"
+                            ${type === 'drive' ? 'checked' : ''}
+                          >
                           <label class="event__type-label  event__type-label--drive" for="event-type-drive-1">Drive</label>
                         </div>
+
                         <div class="event__type-item">
-                          <input id="event-type-flight-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="flight">
+                          <input id="event-type-flight-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="flight"
+                            ${type === 'flight' ? 'checked' : ''}
+                          >
                           <label class="event__type-label  event__type-label--flight" for="event-type-flight-1">Flight</label>
                         </div>
+
                         <div class="event__type-item">
-                          <input id="event-type-check-in-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="check-in">
+                          <input id="event-type-check-in-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="check-in"
+                            ${type === 'check-in' ? 'checked' : ''}
+                          >
                           <label class="event__type-label  event__type-label--check-in" for="event-type-check-in-1">Check-in</label>
                         </div>
+
                         <div class="event__type-item">
-                          <input id="event-type-sightseeing-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="sightseeing">
+                          <input id="event-type-sightseeing-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="sightseeing"
+                            ${type === 'sightseeing' ? 'checked' : ''}
+                          >
                           <label class="event__type-label  event__type-label--sightseeing" for="event-type-sightseeing-1">Sightseeing</label>
                         </div>
+
                         <div class="event__type-item">
-                          <input id="event-type-restaurant-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="restaurant">
+                          <input id="event-type-restaurant-1" class="event__type-input  visually-hidden" type="radio" name="event-type" value="restaurant"
+                            ${type === 'restaurant' ? 'checked' : ''}
+                          >
                           <label class="event__type-label  event__type-label--restaurant" for="event-type-restaurant-1">Restaurant</label>
                         </div>
                       </fieldset>
@@ -161,7 +188,6 @@ const createAddNewWaypointFormTemplate = (state, destinationsList, offersList) =
 };
 
 export default class AddNewWaypointView extends AbstrAbstractStatefulView {
-  #datepicker = null;
   #waypointsModel = null;
   #destinationsList = null;
   #offersList = null;
@@ -180,14 +206,57 @@ export default class AddNewWaypointView extends AbstrAbstractStatefulView {
     return createAddNewWaypointFormTemplate(this._state, this.#destinationsList, this.#offersList, this.#isDisabled);
   }
 
-  static parseStateToWaypoint = (state) => ({...state,
-    isDisabled: false,
-    isSaving: false,
-  });
-
   setSubmitHandler = (callback) => {
     this._callback.submit = callback;
     this.element.querySelector('form').addEventListener('submit', this.#handleSubmitClick);
+  };
+
+  setCancelClickHandler = (callback) => {
+    this._callback.cancel = callback;
+    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#handleCancelClick);
+  };
+
+  #setDateFromPicker = () => {
+    flatpickr(
+      this.element.querySelector('#event-start-time-1'),
+      {
+        allowInput: true,
+        enableTime: true,
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateFrom,
+        maxDate: this._state.dateTo,
+        onChange: this.#dateFromChangeHandler,
+      }
+    );
+  };
+
+  #setDateToPicker = () => {
+    flatpickr(
+      this.element.querySelector('#event-end-time-1'),
+      {
+        allowInput: true,
+        enableTime: true,
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateTo,
+        minDate: this._state.dateFrom,
+        onChange: this.#dateToChangeHandler,
+      }
+    );
+  };
+
+  #setInnerHandlers = () => {
+    this.element.querySelector('.event__type-list').addEventListener('click', this.#changeWaypointTypeHandler);
+    this.element.querySelector('.event__input--destination').addEventListener('change', this.#changeDestinationHandler);
+    this.element.querySelector('.event__field-group.event__field-group--price').addEventListener('change', this.#handlePriceChange);
+    this.element.querySelector('.event__available-offers').addEventListener('change', this.#handleToggleOffer);
+    this.#setDateFromPicker();
+    this.#setDateToPicker();
+  };
+
+  _restoreHandlers = () => {
+    this.#setInnerHandlers();
+    this.setSubmitHandler(this._callback.submit);
+    this.setCancelClickHandler(this._callback.cancel);
   };
 
   #handleSubmitClick = (evt) => {
@@ -195,9 +264,42 @@ export default class AddNewWaypointView extends AbstrAbstractStatefulView {
     this._callback.submit(AddNewWaypointView.parseStateToWaypoint(this._state));
   };
 
-  setCancelClickHandler = (callback) => {
-    this._callback.cancel = callback;
-    this.element.querySelector('.event__reset-btn').addEventListener('click', this.#handleCancelClick);
+  #dateFromChangeHandler = ([userDate]) => {
+    this._setState({
+      dateFrom: userDate,
+    });
+  };
+
+  #dateToChangeHandler = ([userDate]) => {
+    this._setState({
+      dateTo: userDate,
+    });
+  };
+
+  #handlePriceChange = (evt) => {
+    evt.preventDefault();
+    this._setState({
+      basePrice: parseInt(evt.target.value, 10),
+    });
+  };
+
+  #handleToggleOffer = (evt) => {
+    evt.preventDefault();
+    const selectedOffers = [];
+    const targetValue = parseInt(evt.target.value, 10);
+
+    if (evt.target.checked && !selectedOffers.find((offer) => offer === targetValue)) {
+      selectedOffers.push(targetValue);
+    } else {
+      const myIndex = selectedOffers.indexOf(targetValue);
+      if ( myIndex !== -1 ) {
+        selectedOffers.splice(myIndex, 1);
+      }
+    }
+
+    this._setState({
+      offers: selectedOffers,
+    });
   };
 
   #handleCancelClick = () => {
@@ -228,84 +330,8 @@ export default class AddNewWaypointView extends AbstrAbstractStatefulView {
     });
   };
 
-  #dateFromChangeHandler = ([userDate]) => {
-    this._setState({
-      dateFrom: userDate,
-    });
-  };
-
-  #dateToChangeHandler = ([userDate]) => {
-    this._setState({
-      dateTo: userDate,
-    });
-  };
-
-  #setDateFromPicker = () => {
-    this.#datepicker = flatpickr(
-      this.element.querySelector('#event-start-time-1'),
-      {
-        allowInput: true,
-        enableTime: true,
-        dateFormat: 'd/m/y H:i',
-        defaultDate: this._state.dateFrom,
-        maxDate: this._state.dateTo,
-        onChange: this.#dateFromChangeHandler,
-      }
-    );
-  };
-
-  #setDateToPicker = () => {
-    this.#datepicker = flatpickr(
-      this.element.querySelector('#event-end-time-1'),
-      {
-        allowInput: true,
-        enableTime: true,
-        dateFormat: 'd/m/y H:i',
-        defaultDate: this._state.dateTo,
-        minDate: this._state.dateFrom,
-        onChange: this.#dateToChangeHandler,
-      }
-    );
-  };
-
-  #handlePriceChange = (evt) => {
-    evt.preventDefault();
-    this._setState({
-      basePrice: parseInt(evt.target.value, 10),
-    });
-  };
-
-  #handleToggleOffer = (evt) => {
-    evt.preventDefault();
-    const selectedOffers = [];
-    const targetValue = parseInt(evt.target.value, 10);
-
-    if (evt.target.checked && !selectedOffers.find((offer) => offer === targetValue)) {
-      selectedOffers.push(targetValue);
-    } else {
-      const myIndex = selectedOffers.indexOf(targetValue);
-      if ( myIndex !== -1 ) {
-        selectedOffers.splice(myIndex, 1);
-      }
-    }
-
-    this._setState({
-      offers: selectedOffers,
-    });
-  };
-
-  #setInnerHandlers = () => {
-    this.element.querySelector('.event__type-list').addEventListener('click', this.#changeWaypointTypeHandler);
-    this.element.querySelector('.event__input--destination').addEventListener('change', this.#changeDestinationHandler);
-    this.element.querySelector('.event__field-group.event__field-group--price').addEventListener('change', this.#handlePriceChange);
-    this.element.querySelector('.event__available-offers').addEventListener('change', this.#handleToggleOffer);
-    this.#setDateFromPicker();
-    this.#setDateToPicker();
-  };
-
-  _restoreHandlers = () => {
-    this.#setInnerHandlers();
-    this.setSubmitHandler(this._callback.submit);
-    this.setCancelClickHandler(this._callback.cancel);
-  };
+  static parseStateToWaypoint = (state) => ({...state,
+    isDisabled: false,
+    isSaving: false,
+  });
 }

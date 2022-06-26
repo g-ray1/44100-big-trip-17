@@ -1,6 +1,6 @@
 import { remove, render, replace } from '../framework/render.js';
 import { UpdateType } from '../const.js';
-import FiltersFormView from '../view/filters-view';
+import FiltersFormView from '../view/filters-form-view';
 
 export default class FiltersPresenter {
   #filtersContainer = null;
