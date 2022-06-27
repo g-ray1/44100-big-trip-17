@@ -31,6 +31,23 @@ const getPictures = (destination) => (
   `
 );
 
+const getDescription = (destination) => {
+  if (destination) {
+    return `
+    <section class="event__section  event__section--destination">
+      <h3 class="event__section-title  event__section-title--destination">Destination</h3>
+      <p class="event__destination-description">${destination.description}</p>
+      <div class="event__photos-container">
+        <div class="event__photos-tape">
+          ${getPictures(destination)}
+        </div>
+      </div>
+    </section>`;
+  }
+
+  return '';
+};
+
 const getOffers = (type, offersList) => {
   const offersByType = offersList.find((item) => item.type === type).offers;
 
@@ -171,18 +188,10 @@ const createAddNewWaypointFormTemplate = (state, destinationsList, offersList) =
                       ${getOffers(type, offersList)}
                     </div>
                   </section>
-                  <section class="event__section  event__section--destination">
-                    <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-                    <p class="event__destination-description">
-                      ${destination ? destination.description : ''}
-                    </p>
-                    <div class="event__photos-container">
-                      <div class="event__photos-tape">
-                        ${getPictures(destination)}
-                      </div>
-                    </div>
+
+                  ${getDescription(destination)}
+
                   </section>
-                </section>
               </form>
             </li>`;
 };
@@ -321,13 +330,15 @@ export default class AddNewWaypointView extends AbstrAbstractStatefulView {
     const newDestination = evt.target.value;
     const destinationData = this.#destinationsList.find((destination) => destination.name === newDestination);
 
-    this.updateElement({
-      destination: {
-        name: newDestination,
-        description: destinationData.description,
-        pictures: destinationData.pictures,
-      }
-    });
+    if (destinationData) {
+      this.updateElement({
+        destination: {
+          name: newDestination,
+          description: destinationData.description,
+          pictures: destinationData.pictures,
+        }
+      });
+    }
   };
 
   static parseStateToWaypoint = (state) => ({...state,
